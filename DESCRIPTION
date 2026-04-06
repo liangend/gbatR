@@ -1,0 +1,26 @@
+Package: gbat
+Title: Gene-Based Association Test for Trans-eQTL Discovery
+Version: 0.1.0
+Authors@R: person("Jinghui", "Li", role = c("aut", "cre"))
+Description: Identifies trans-associations between genes using cross-validated
+    BLUP (Best Linear Unbiased Prediction) predictions and genome-wide
+    significance testing with multiple hypothesis correction. Starting from
+    a normalized count matrix, the pipeline computes surrogate variables,
+    estimates cis-genetic components via REML, predicts genetic values
+    (BLUPs), tests trans-associations, and applies FDR control.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Imports:
+    limma,
+    RNOmni,
+    phenix,
+    sva,
+    SmartSVA,
+    qvalue,
+    msm
+Remotes:
+    stephenslab/phenix
+Suggests:
+    parallel
