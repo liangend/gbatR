@@ -88,9 +88,9 @@ library(gbat)
 library(gbat)
 
 # Load inputs
-expr      <- readRDS("gene_expr.rds")          # samples × genes
-gene_info <- readRDS("gene_info.rds")           # gene annotation table
-cov       <- read.table("covariates.txt",
+expr      <- readRDS("example/gene_expr.rds")                          # samples × genes
+gene_info <- read.table("example/gene_info.txt", header = T)           # gene annotation table
+cov       <- read.table("example/covariates.txt",
                         header = TRUE, row.names = 1, sep = "\t")
 output_dir = "~/gbat_output"  # customize it to whatever you want
 
