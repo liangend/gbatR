@@ -53,10 +53,10 @@ install.packages(path_to_phenix, repos = NULL, type="source")
 
 ------------------------------------------------------------------------
 
-## Installation {#installation}
+## Installation
 
 ``` r
-remotes::install_local("/path/to/gbatR")
+remotes::install_github("liangend/gbatR")
 library(gbat)
 ```
 
