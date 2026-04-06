@@ -98,7 +98,7 @@ output_dir = "~/gbat_output"  # customize it to whatever you want
 plink_samples <- read.table("example/chr1_QCed.fam")
 keep_ids <- intersect(plink_samples$V2, rownames(expr))
 keep_file <- file.path(output_dir, "plink_keep.txt")
-write.table(data.frame(FID = keep_ids, IID = keep_ids),
+write.table(data.frame(FID = keep_ids, IID = keep_ids),  # keep consistent with PLINK FID and IID in .fam
             keep_file, quote = FALSE, row.names = FALSE, col.names = FALSE)
 
 # Keep overlapping IDs
