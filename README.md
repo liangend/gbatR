@@ -82,7 +82,7 @@ library(gbat)
 
 `run_gbat()` executes steps 1–5 (normalization through p-value aggregation) and writes all intermediate results to `output_dir`. FDR computation and significant-gene extraction are then run separately (see below). In the `example` directory, we provided a toy example to demonstrate the pipeline.
 
-`run_gbat()` accepts either normalized gene expression matrix or raw gene count matrix. When `expr` is a gene count matrix, `run_gbat()` can normalize the the matrix by setting `normalize = TRUE`. Under this case, `gene_info` must contain a column of `length` recording the gene length (the total number of nucleotides covered by its exons), which can be obtained through gene count software (i.e., featureCounts, htseq-count). The `length` information is required to calculate RPKM in the normalization procedure.
+`run_gbat()` accepts either normalized gene expression matrix or raw gene count matrix. When `expr` is a gene count matrix, `run_gbat()` can normalize the the matrix by setting `normalize = TRUE`. Under this case, `gene_info` must contain a column of `length` recording the gene length (the total number of nucleotides covered by its exons), which can be obtained through gene count software (e.g., featureCounts, htseq-count). The `length` information is required to calculate RPKM in the normalization procedure.
 
 ``` r
 library(gbat)
