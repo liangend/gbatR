@@ -18,7 +18,7 @@ gbatR identifies trans-associations between genes by modelling the cis-genetic c
 
 ------------------------------------------------------------------------
 
-## Dependencies {#dependencies}
+## Dependencies
 
 ### R packages
 
@@ -62,7 +62,7 @@ library(gbat)
 
 ------------------------------------------------------------------------
 
-## Input Data Requirements {#input-data-requirements}
+## Input Data Requirements
 
 | Object | Format | Notes |
 |------------------------|------------------------|------------------------|
@@ -78,7 +78,7 @@ library(gbat)
 
 ------------------------------------------------------------------------
 
-## Run the Full Pipeline in One Call {#run-the-full-pipeline-in-one-call}
+## Run the Full Pipeline in One Call
 
 `run_gbat()` executes steps 1–5 (normalization through p-value aggregation) and writes all intermediate results to `output_dir`. FDR computation and significant-gene extraction are then run separately (see below). In the `example` directory, we provided a toy example to demonstrate the pipeline.
 
@@ -110,7 +110,7 @@ results <- run_gbat(
   expr          = expr,
   gene_info     = gene_info,
   covariates    = as.matrix(cov),
-  genotype_dir  = "/path/to/plink_bfiles",
+  genotype_dir  = "example/",
   output_dir    = output_dir,
   gene_col      = "gene_id",     # name of gene name column in gene_info that matches with expr
   bfile_pattern = "chr{chr}_QCed",    # PLINK file name. {chr} is chromosome number
@@ -160,7 +160,7 @@ head(sig)
 
 ------------------------------------------------------------------------
 
-## Run the Pipeline Step by Step {#run-the-pipeline-step-by-step}
+## Run the Pipeline Step by Step
 
 The same pipeline can be assembled from individual functions, which is useful for custom workflows.
 
@@ -283,7 +283,7 @@ sig <- get_sig_genes(
 
 ------------------------------------------------------------------------
 
-## Output Files {#output-files}
+## Output Files
 
 All files are written to `output_dir`.
 
