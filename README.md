@@ -98,7 +98,7 @@ output_dir = "~/gbat_output"  # customize it to whatever you want
 plink_samples <- read.table("example/chr1_QCed.fam")
 keep_ids <- intersect(plink_samples$V2, rownames(expr))
 keep_file <- file.path(output_dir, "plink_keep.txt")
-FID = plink_samples$V1[match(keep_ids, plink_samples$V2)]
+FID <- plink_samples$V1[match(keep_ids, plink_samples$V2)]
 write.table(data.frame(FID = FID, IID = keep_ids),
             keep_file, quote = FALSE, row.names = FALSE, col.names = FALSE)
 
