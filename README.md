@@ -98,7 +98,8 @@ output_dir = "~/gbat_output"  # customize it to whatever you want
 plink_samples <- read.table("example/chr1_QCed.fam")
 keep_ids <- intersect(plink_samples$V2, rownames(expr))
 keep_file <- file.path(output_dir, "plink_keep.txt")
-write.table(data.frame(FID = keep_ids, IID = keep_ids),  # keep consistent with PLINK FID and IID in .fam
+FID = plink_samples$V1[match(keep_ids, plink_samples$V2)]
+write.table(data.frame(FID = FID, IID = keep_ids),
             keep_file, quote = FALSE, row.names = FALSE, col.names = FALSE)
 
 # Keep overlapping IDs
@@ -116,15 +117,17 @@ results <- run_gbat(
   bfile_pattern = "chr{chr}_QCed",    # PLINK file name. {chr} is chromosome number
   plink_path    = "/path/to/plink",
   plink_samples = paste0(output_dir, 
-                         "/plink_keep.txt"), # NULL if PLINK file contains the same IDs as expr
+                         "/plink_keep.txt"), # NULL if PLINK file contains the same IDs as expr. The ID order doesn't have to match with expr
   num_sv        = 3,                  # number of surrogated variables. default = 20
-  cis_window    = 1e5,                # 100 kb cis window around TSS
+  cis_window    = 1e5,                # cis window around TSS to predict the gene expression
   chromosomes   = 1:5,                # better to run one chr at a time in real data analysis
   normalize     = FALSE               # set TRUE if expr is a raw count matrix
 )
 ```
 
 **Step 6 – Genome-wide FDR:**
+
+Genome-wide FDR cutoff is calculated based on the p values of inter-chromosmome gene pairs.
 
 ``` r
 allp_files <- list.files("gbat_output",
