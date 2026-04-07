@@ -92,7 +92,7 @@ expr      <- readRDS("example/gene_expr.rds")                          # samples
 gene_info <- read.table("example/gene_info.txt", header = T)           # gene annotation table
 cov       <- read.table("example/covariates.txt",
                         header = TRUE, row.names = 1, sep = "\t")
-output_dir = "~/gbat_output"  # customize it to whatever you want
+output_dir <- "~/gbat_output"  # customize it to whatever you want
 
 # Extract the overlapping IDs between expr and genotype (IMPORTANT!)
 plink_samples <- read.table("example/chr1_QCed.fam")
@@ -113,11 +113,10 @@ results <- run_gbat(
   covariates    = as.matrix(cov),
   genotype_dir  = "example/",
   output_dir    = output_dir,
-  gene_col      = "gene_id",     # name of gene name column in gene_info that matches with expr
-  bfile_pattern = "chr{chr}_QCed",    # PLINK file name. {chr} is chromosome number
+  gene_col      = "gene_id",          # name of gene name column in gene_info that matches with expr
+  bfile_pattern = "chr{chr}_QCed",    # PLINK file name format. {chr} is the chromosome number
   plink_path    = "/path/to/plink",
-  plink_samples = paste0(output_dir, 
-                         "/plink_keep.txt"), # NULL if PLINK file contains the same IDs as expr. The ID order doesn't have to match with expr
+  plink_samples = keep_file,          # NULL if PLINK file contains the same IDs as expr. The ID order doesn't have to match with expr
   num_sv        = 3,                  # number of surrogated variables. default = 20
   cis_window    = 1e5,                # cis window around TSS to predict the gene expression
   chromosomes   = 1:5,                # better to run one chr at a time in real data analysis
