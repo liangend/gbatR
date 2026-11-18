@@ -68,11 +68,11 @@ library(gbat)
 |------------------------|------------------------|------------------------|
 | `expr` | Gene expression matrix, samples × genes | Row names are sample IDs and column names are genes. |
 | `gene_info` | Gene information data frame | Must contain a gene name column (matching with gene names in expr), a `chr` column in `"chr1"` format, and a `start` column (TSS position in the same coordinate system as the PLINK bfiles). |
-| `covariates` | Covariate matrix, samples × covariates | Same row order as `expr`. Typical columns: genotype PCs, age, sex, batch. Pass `NULL` if none. |
+| `covariates` | Covariate matrix, samples × covariates | Individual IDs as row names. Rows are matched to `expr` by ID. Typical columns: genotype PCs, age, sex, batch. Pass `NULL` if none. |
 | PLINK bfiles | `.bed` / `.bim` / `.fam` | One set per chromosome. File names must follow a consistent pattern with `{chr}` as the chromosome placeholder, e.g. ``` chr1_eur.bed,``chr2_eur.bed ```. |
 | `plink_samples` | Plain-text file, two columns (FID IID, no header) | Samples overlapping between gene expression and genotype. |
 
-> **Sample alignment:** `rownames(expr)` must match the `rownames(covariates)`exactly.
+> **Sample alignment:** Each expression sample ID must appear once in `rownames(covariates)`. Row order may differ.
 
 > **Coordinate system:** The `start` column in `gene_info` and the SNP positions in the PLINK `.bim` file must use the same genome build (e.g. both hg38 or both hg19).
 
@@ -80,7 +80,7 @@ library(gbat)
 
 ## Run the Full Pipeline in One Call
 
-`run_gbat()` executes steps 1–5 (normalization through p-value aggregation) and writes all intermediate results to `output_dir`. FDR computation and significant-gene extraction are then run separately (see below). In the `example` directory, we provided a toy example to demonstrate the pipeline.
+`run_gbat()` executes steps 1–5 (normalization through p-value aggregation) and writes all intermediate results to `output_dir`. FDR computation and significant-gene extraction are then run separately (see below). The bundled 50-gene example can demonstrate cis prediction. The trans test fits 100 supervised SVs per predictor and requires a larger expression matrix. It uses only the first `num_sv` SVs for adjustment.
 
 `run_gbat()` accepts either normalized gene expression matrix or raw gene count matrix. When `expr` is a gene count matrix, `run_gbat()` can normalize the the matrix by setting `normalize = TRUE`. Under this case, `gene_info` must contain a column of `length` recording the gene length (the total number of nucleotides covered by its exons), which can be obtained through gene count software (e.g., featureCounts, htseq-count). The `length` information is required to calculate RPKM in the normalization procedure.
 
@@ -226,7 +226,8 @@ pr <- compute_pearson_r(blup_out$blup, expr)
 For each gene with Pearson R \> 0.1, re-estimates surrogate variables via SmartSVA (using the BLUP as a covariate), residualizes expression, and regresses all genes on the standardized BLUP.
 
 ``` r
-pvals <- compute_trans_pvals(expr, blup_out$blup, pr, num_sv = 20)
+pvals <- compute_trans_pvals(expr, blup_out$blup, pr, num_sv = 20,
+                            covariates = cov)
 # Returns a genes × predictor-genes p-value matrix.
 # Row names are target gene IDs; column names are predictor gene IDs.
 
