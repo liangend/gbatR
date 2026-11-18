@@ -27,6 +27,7 @@
 #' @param svs Surrogate variable matrix (samples x K) from [compute_svs()],
 #'   or `NA` if none.
 #' @param covariates Additional covariate matrix (samples x C), or `NULL`.
+#'   Row names are individual IDs and are matched against `expr`.
 #'   Combined with `svs` as fixed effects.
 #' @param plink_path Path to PLINK 1.9 executable (default `"plink"`).
 #' @param plink_samples Path to a two-column (FID IID) plain-text file
@@ -84,6 +85,8 @@ run_cvblup <- function(chr, gene_pos, genotype_dir, expr,
                   c(gene_col, "h2g")
                 )))
   }
+
+  covariates <- .align_covariates(covariates, expr)
 
   # ---- Build combined covariate matrix (SVs + covariates), standardised ---
   if (all(is.na(svs))) {
@@ -203,6 +206,7 @@ run_cvblup <- function(chr, gene_pos, genotype_dir, expr,
                 )))
   }
 
+  rownames(goos) <- rownames(expr)
   colnames(goos) <- colgenes
   h2g_df <- data.frame(colgenes, h2_all, stringsAsFactors = FALSE)
   colnames(h2g_df) <- c(gene_col, "h2g")
