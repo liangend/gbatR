@@ -9,14 +9,36 @@
 #' @param blup_matrix N x G matrix of BLUP predictions from [run_cvblup()].
 #' @param pearson_r Data frame from [compute_pearson_r()] with columns
 #'   `gene` and `pearsonR`. Only genes with `pearsonR > 0.1` are tested.
-#' @param num_sv Number of surrogate variables for SmartSVA (default 20).
+#' @param num_sv Number of leading supervised SVs to use (default 20,
+#'   between 0 and 100). SmartSVA always estimates 100.
+#' @param covariates Optional numeric sample-by-covariate matrix. Row names
+#'   are sample IDs and are matched to expression before testing.
 #'
 #' @return A matrix of trans p-values. Rows = all expression genes, columns =
 #'   tested predictor genes (those with sufficient cis signal). Row names are
 #'   expression gene IDs; column names are predictor gene IDs.
 #'
 #' @export
-compute_trans_pvals <- function(expr, blup_matrix, pearson_r, num_sv = 20) {
+compute_trans_pvals <- function(expr, blup_matrix, pearson_r, num_sv = 20,
+                                covariates = NULL) {
+  if (length(num_sv) != 1L || !is.finite(num_sv) ||
+      num_sv != floor(num_sv) || num_sv < 0 || num_sv > 100) {
+    stop("num_sv must be an integer between 0 and 100.")
+  }
+  covariates <- .align_covariates(covariates, expr)
+  if (!is.null(rownames(blup_matrix)) || !is.null(covariates)) {
+    blup_matrix <- .align_samples(blup_matrix, expr, "BLUPs")
+  } else if (nrow(blup_matrix) != nrow(expr)) {
+    stop("BLUP and expression matrices must contain the same samples.")
+  }
+  design <- cbind(intercept = rep(1, nrow(expr)), covariates)
+  if (ncol(expr) < 100L || nrow(expr) <= ncol(design) + 101L) {
+    stop("Estimating 100 supervised SVs requires at least 100 expression genes ",
+         "and more than 102 samples plus the number of covariate columns.")
+  }
+  if (qr(design)$rank < ncol(design)) {
+    stop("Covariates must be linearly independent and exclude an intercept.")
+  }
   all_cor <- NULL
   coln <- NULL
 
@@ -36,32 +58,47 @@ compute_trans_pvals <- function(expr, blup_matrix, pearson_r, num_sv = 20) {
       if (is.na(blup_sd) || blup_sd < 1e-10) next
 
       # Re-estimate SVs using BLUP as a covariate (SmartSVA)
-      g_sva <- .make_smartsva(expr, num_sv, g_blup)
+      g_sva <- .make_smartsva(expr, 100L, g_blup, covariates)
 
       # Standardize BLUP
       g_norm <- (g_blup - mean(g_blup)) / blup_sd
 
-      if (!any(is.na(g_sva))) {
-        # Residualize expression against SVA (first num_sv columns)
-        n_sv_use <- min(num_sv, ncol(g_sva))
-        rlm <- stats::lm(expr ~ g_sva[, seq_len(n_sv_use)])
+      if (is.null(dim(g_sva)) || ncol(g_sva) < num_sv ||
+          any(!is.finite(g_sva))) {
+        stop("SmartSVA did not return a finite surrogate-variable matrix.")
+      }
+      adjustment <- cbind(covariates, g_sva[, seq_len(num_sv), drop = FALSE])
+      if (ncol(adjustment) > 0L) {
+        rlm <- stats::lm(expr ~ adjustment)
         rQN <- phenix::quantnorm(as.matrix(stats::resid(rlm)))
       } else {
         rQN <- expr
       }
 
-      # Regress residualized expression on standardized BLUP
-      test <- stats::lm(rQN ~ g_norm)
+      # Keep known covariates in the final test after quantile normalization.
+      test <- if (is.null(covariates)) {
+        stats::lm(rQN ~ g_norm)
+      } else {
+        stats::lm(rQN ~ covariates + g_norm)
+      }
       pvals_col <- sapply(summary(test),
-                          function(x) x$coefficients[2, 4])
+                          function(x) if ("g_norm" %in% rownames(x$coefficients)) {
+                            x$coefficients["g_norm", 4]
+                          } else {
+                            NA_real_
+                          })
 
       all_cor <- cbind(all_cor, pvals_col)
       coln <- c(coln, gene)
-    }, error = function(e) {})
+    }, error = function(e) {
+      warning("Trans test failed for ", gene, ": ", conditionMessage(e),
+              call. = FALSE)
+    })
   }
 
   if (is.null(all_cor)) {
-    return(matrix(nrow = nrow(expr), ncol = 0))
+    return(matrix(nrow = ncol(expr), ncol = 0,
+                  dimnames = list(colnames(expr), NULL)))
   }
 
   rownames(all_cor) <- colnames(expr)
