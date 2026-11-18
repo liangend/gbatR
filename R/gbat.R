@@ -18,8 +18,7 @@
 #'   chromosome (`"chr"`), TSS position (`"start"`), and gene ID (specified
 #'   by `gene_col`). Chromosome values must be in `"chr1"` format.
 #' @param covariates Numeric matrix of additional covariates (samples x C),
-#'   e.g. genotype PCs, in the same sample order as `expr`. Pass `NULL` if
-#'   none.
+#'   e.g. genotype PCs, with individual IDs as row names. Pass `NULL` if none.
 #' @param genotype_dir Path to the directory containing PLINK bfiles.
 #' @param output_dir Directory where intermediate and final results are
 #'   written. Created if it does not exist.
@@ -31,7 +30,8 @@
 #' @param plink_path Path to PLINK 1.9 executable (default `"plink"`).
 #' @param plink_samples Path to a PLINK `--keep` file (FID IID, no header).
 #'   If `NULL`, all samples in the bfile are used.
-#' @param num_sv Number of surrogate variables (default 20).
+#' @param num_sv Number of SVs used (default 20). The trans test always fits
+#'   100 supervised SVs and uses the first `num_sv`.
 #' @param cis_window Cis window around TSS in bp (default 100000).
 #' @param chromosomes Integer vector of chromosomes to analyse (default 1:22).
 #' @param normalize If `TRUE`, treat `expr` as a raw count matrix and run
@@ -85,16 +85,13 @@ run_gbat <- function(expr,
     if (verbose) message("[GBAT] Step 1: Using pre-normalized expression matrix.")
   }
 
+  covariates <- .align_covariates(covariates, expr)
+
   # ---- Step 2: Surrogate variable analysis ---------------------------------
   sva_file <- file.path(output_dir, "sva.txt")
-  if (file.exists(sva_file)) {
-    if (verbose) message("[GBAT] Step 2: Loading existing surrogate variables from ", sva_file)
-    svs <- as.matrix(utils::read.table(sva_file, header = TRUE))
-  } else {
-    if (verbose) message("[GBAT] Step 2: Computing surrogate variables...")
-    svs <- compute_svs(expr, num_sv = num_sv)
-    utils::write.table(svs, sva_file, quote = FALSE, row.names = FALSE)
-  }
+  if (verbose) message("[GBAT] Step 2: Computing surrogate variables...")
+  svs <- compute_svs(expr, num_sv = num_sv)
+  utils::write.table(svs, sva_file, quote = FALSE, row.names = FALSE)
 
   # ---- Steps 3–5: Per-chromosome processing --------------------------------
   blup_all     <- list()
@@ -172,7 +169,8 @@ run_gbat <- function(expr,
                        file.path(output_dir, paste0("pearsonR_chr", chr, ".txt")),
                        row.names = FALSE, quote = FALSE, sep = "\t")
 
-    pvals <- compute_trans_pvals(expr, blup_out$blup, pr, num_sv = num_sv)
+    pvals <- compute_trans_pvals(expr, blup_out$blup, pr, num_sv = num_sv,
+                                covariates = covariates)
     if (ncol(pvals) == 0) {
       if (verbose) message("  Chr ", chr, ": trans p-value computation ",
                            "produced no results — SmartSVA may have failed ",
