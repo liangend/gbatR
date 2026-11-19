@@ -143,6 +143,17 @@ run_cvblup <- function(chr, gene_pos, genotype_dir, expr,
                        snp_range_file,
                        quote = FALSE, row.names = FALSE, col.names = FALSE)
 
+    # Remove previous outputs so a failed extraction cannot reuse genotypes.
+    genotype_files <- paste0(prefix, c(".ped", ".map"))
+    existing_files <- genotype_files[file.exists(genotype_files)]
+    if (length(existing_files) > 0L) {
+      removed <- file.remove(existing_files)
+      if (!all(removed) || any(file.exists(existing_files))) {
+        stop("Cannot remove previous PLINK genotype files for gene ", gene,
+             ": ", paste(existing_files[file.exists(existing_files)], collapse = ", "))
+      }
+    }
+
     # Run PLINK (quote all paths to handle spaces in directory names)
     plink_cmd <- paste(
       shQuote(plink_path),
@@ -154,11 +165,25 @@ run_cvblup <- function(chr, gene_pos, genotype_dir, expr,
     if (!is.null(plink_samples)) {
       plink_cmd <- paste(plink_cmd, "--keep", shQuote(plink_samples))
     }
-    system(plink_cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
+    plink_output <- suppressWarnings(
+      system(paste(plink_cmd, "2>&1"), intern = TRUE, ignore.stderr = FALSE, ignore.stdout = FALSE,
+             wait = TRUE)
+    )
+    plink_status <- attr(plink_output, "status")
+    if (is.null(plink_status)) plink_status <- 0L
+    if (plink_status != 0L) {
+      stop("PLINK extraction failed for gene ", gene, " (exit status ",
+           plink_status, ").\n", paste(plink_output, collapse = "\n"))
+    }
 
-    f_ped <- paste0(prefix, ".ped")
-    f_map <- paste0(prefix, ".map")
-    if (!file.exists(f_ped) || !file.exists(f_map)) next
+    f_ped <- genotype_files[1L]
+    f_map <- genotype_files[2L]
+    if (any(!file.exists(genotype_files)) ||
+        any(file.info(genotype_files)$size == 0)) {
+      stop("PLINK extraction for gene ", gene,
+           " did not produce non-empty .ped and .map files.\n",
+           paste(plink_output, collapse = "\n"))
+    }
 
     plink_out <- .read_plink_ped(f_ped, f_map)
     W <- .normalize_genotypes(plink_out$W[align_idx, , drop = FALSE])
