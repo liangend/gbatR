@@ -18,7 +18,7 @@ gbatR identifies trans-associations between genes by modelling the cis-genetic c
 
 ------------------------------------------------------------------------
 
-## Dependencies
+## Dependencies {#dependencies}
 
 ### R packages
 
@@ -53,7 +53,7 @@ install.packages(path_to_phenix, repos = NULL, type="source")
 
 ------------------------------------------------------------------------
 
-## Installation
+## Installation {#installation}
 
 ``` r
 remotes::install_github("liangend/gbatR")
@@ -62,7 +62,7 @@ library(gbat)
 
 ------------------------------------------------------------------------
 
-## Input Data Requirements
+## Input Data Requirements {#input-data-requirements}
 
 | Object | Format | Notes |
 |------------------------|------------------------|------------------------|
@@ -78,9 +78,9 @@ library(gbat)
 
 ------------------------------------------------------------------------
 
-## Run the Full Pipeline in One Call
+## Run the Full Pipeline in One Call {#run-the-full-pipeline-in-one-call}
 
-`run_gbat()` executes steps 1–5 (normalization through p-value aggregation) and writes all intermediate results to `output_dir`. FDR computation and significant-gene extraction are then run separately (see below). The bundled 50-gene example can demonstrate cis prediction. The trans test fits 100 supervised SVs per predictor and requires a larger expression matrix. It uses only the first `num_sv` SVs for adjustment.
+`run_gbat()` executes steps 1–5 (normalization through p-value aggregation) and writes all intermediate results to `output_dir`. FDR computation and significant-gene extraction are then run separately (see below). The trans test estimates `num_sv` supervised SVs per predictor and uses all of them together with the supplied covariates for adjustment.
 
 `run_gbat()` accepts either normalized gene expression matrix or raw gene count matrix. When `expr` is a gene count matrix, `run_gbat()` can normalize the the matrix by setting `normalize = TRUE`. Under this case, `gene_info` must contain a column of `length` recording the gene length (the total number of nucleotides covered by its exons), which can be obtained through gene count software (e.g., featureCounts, htseq-count). The `length` information is required to calculate RPKM in the normalization procedure.
 
@@ -162,7 +162,7 @@ head(sig)
 
 ------------------------------------------------------------------------
 
-## Run the Pipeline Step by Step
+## Run the Pipeline Step by Step {#run-the-pipeline-step-by-step}
 
 The same pipeline can be assembled from individual functions, which is useful for custom workflows.
 
@@ -286,7 +286,7 @@ sig <- get_sig_genes(
 
 ------------------------------------------------------------------------
 
-## Output Files
+## Output Files {#output-files}
 
 All files are written to `output_dir`.
 
