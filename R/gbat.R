@@ -30,8 +30,7 @@
 #' @param plink_path Path to PLINK 1.9 executable (default `"plink"`).
 #' @param plink_samples Path to a PLINK `--keep` file (FID IID, no header).
 #'   If `NULL`, all samples in the bfile are used.
-#' @param num_sv Number of SVs used (default 20). The trans test always fits
-#'   100 supervised SVs and uses the first `num_sv`.
+#' @param num_sv Number of SVs to estimate and use (default 20).
 #' @param cis_window Cis window around TSS in bp (default 100000).
 #' @param chromosomes Integer vector of chromosomes to analyse (default 1:22).
 #' @param normalize If `TRUE`, treat `expr` as a raw count matrix and run
