@@ -49,7 +49,7 @@ compute_svs <- function(expr, num_sv = 20) {
   covariates
 }
 
-# Estimate 100 supervised SVs with known covariates in both designs.
+# Estimate the requested number of supervised SVs with known covariates in both designs.
 .make_smartsva <- function(expr, K, X, covariates = NULL) {
   mod0 <- cbind(intercept = rep(1, nrow(expr)), covariates)
   mod <- cbind(mod0, predictor = X)
