@@ -18,7 +18,7 @@ gbatR identifies trans-associations between genes by modelling the cis-genetic c
 
 ------------------------------------------------------------------------
 
-## Dependencies {#dependencies}
+## Dependencies
 
 ### R packages
 
@@ -53,7 +53,7 @@ install.packages(path_to_phenix, repos = NULL, type="source")
 
 ------------------------------------------------------------------------
 
-## Installation {#installation}
+## Installation
 
 ``` r
 remotes::install_github("liangend/gbatR")
@@ -62,7 +62,7 @@ library(gbat)
 
 ------------------------------------------------------------------------
 
-## Input Data Requirements {#input-data-requirements}
+## Input Data Requirements
 
 | Object | Format | Notes |
 |------------------------|------------------------|------------------------|
@@ -78,7 +78,7 @@ library(gbat)
 
 ------------------------------------------------------------------------
 
-## Run the Full Pipeline in One Call {#run-the-full-pipeline-in-one-call}
+## Run the Full Pipeline in One Call
 
 `run_gbat()` executes steps 1–5 (normalization through p-value aggregation) and writes all intermediate results to `output_dir`. FDR computation and significant-gene extraction are then run separately (see below). The trans test estimates `num_sv` supervised SVs per predictor and uses all of them together with the supplied covariates for adjustment.
 
@@ -162,7 +162,7 @@ head(sig)
 
 ------------------------------------------------------------------------
 
-## Run the Pipeline Step by Step {#run-the-pipeline-step-by-step}
+## Run the Pipeline Step by Step
 
 The same pipeline can be assembled from individual functions, which is useful for custom workflows.
 
@@ -286,7 +286,7 @@ sig <- get_sig_genes(
 
 ------------------------------------------------------------------------
 
-## Output Files {#output-files}
+## Output Files
 
 All files are written to `output_dir`.
 
